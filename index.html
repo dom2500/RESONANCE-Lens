@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#11110f">
+  <meta name="description" content="Verflüssige deine Umgebung. Ein mobiles Kamera-Experiment mit Three.js.">
+  <title>Reality Melt — A liquid lens</title>
+  <style>
+    :root{color-scheme:dark;--ink:#f5f3ea;--muted:#c0bdb3;--accent:#ff704c;--surface:#191916;--line:#55534b}
+    *{box-sizing:border-box}body{margin:0;background:#11110f;color:var(--ink);font:15px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input{font:inherit}button{cursor:pointer;touch-action:manipulation}button:disabled{opacity:.4;cursor:wait}button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:4px}button{transition:background .18s,color .18s}button:active{filter:brightness(.8)}[hidden]{display:none!important}
+    #stage{position:fixed;inset:0;overflow:hidden;background:#272b28}#stage canvas{display:block;width:100%;height:100%;touch-action:none}#stage:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(#0007,transparent 22%,transparent 48%,#0009)}
+    header{position:fixed;z-index:2;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:calc(16px + env(safe-area-inset-top)) 20px 0;gap:12px;pointer-events:none}.brand{font-size:13px;font-weight:650;letter-spacing:.16em;display:flex;align-items:center;gap:10px}.mark{width:26px;height:26px;border:1px solid #fff9;border-radius:50%;display:grid;place-items:center}.mark:before{content:"";width:12px;height:16px;border:1px solid #fff;border-radius:60% 30% 55% 30%;transform:rotate(35deg)}
+    .pill{font:11px/1.3 ui-monospace,monospace;letter-spacing:.06em;background:#131410dc;border:1px solid #ffffff40;border-radius:30px;padding:9px 12px;display:flex;align-items:center;gap:7px;white-space:nowrap}.dot{width:6px;height:6px;background:var(--accent);border-radius:50%}
+    #intro{position:fixed;z-index:2;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:90px 24px calc(28px + env(safe-area-inset-bottom));background:linear-gradient(transparent 22%,#11110fdd 75%);pointer-events:none}.intro-content{max-width:620px}.eyebrow{font:11px ui-monospace,monospace;letter-spacing:.14em;color:var(--muted);margin:0 0 20px}.hero-title{font-size:clamp(70px,16vw,132px);font-weight:450;line-height:.84;letter-spacing:-.085em;margin:0 0 28px}.hero-title span{font-family:Georgia,serif;font-style:italic;font-weight:400;color:#ffad88;letter-spacing:-.075em}.intro-copy{max-width:300px;font-size:16px;color:#e4e0d5;margin:0 0 28px}.start-row{display:flex;gap:10px;flex-wrap:wrap;pointer-events:auto}button.primary{color:#171511;background:var(--accent);border:0;border-radius:100px;padding:16px 24px;font-weight:650;min-height:52px;display:inline-flex;align-items:center;justify-content:center;gap:10px}.secondary{border:1px solid #ffffff70;background:#161714dc;color:var(--ink);border-radius:100px;padding:14px 22px;min-height:52px}.privacy{font-size:12px;color:var(--muted);margin:16px 0 0;max-width:330px}.intro-footer{margin-top:34px;display:flex;justify-content:space-between;gap:12px;font:10px ui-monospace,monospace;letter-spacing:.1em;color:var(--muted)}
+    #tools{position:fixed;z-index:3;bottom:0;left:0;right:0;padding:14px 16px calc(16px + env(safe-area-inset-bottom));display:grid;gap:12px;justify-items:center;background:linear-gradient(transparent,#11110fbb)}.hint{margin:0;font-size:12px;text-shadow:0 1px 5px #000}.toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;width:min(100%,460px);padding:10px 14px;border:1px solid #ffffff40;background:#171815ee;backdrop-filter:blur(16px);border-radius:26px}.tool{width:48px;height:48px;border:0;border-radius:50%;background:transparent;color:var(--ink);display:grid;place-items:center}.tool:hover{background:#ffffff15}.tool svg,.primary svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}.shutter{height:64px;width:64px;border:1px solid #f8f4e8;border-radius:50%;background:transparent;display:grid;place-items:center}.shutter:before{content:"";width:48px;height:48px;border-radius:50%;background:var(--ink);border:3px solid #171815;outline:1px solid var(--ink)}
+    #settings{position:fixed;z-index:4;bottom:calc(132px + env(safe-area-inset-bottom));left:16px;right:16px;margin:auto;max-width:460px;padding:22px;background:#191916f7;border:1px solid #ffffff40;border-radius:24px;box-shadow:0 14px 50px #0006;max-height:60dvh;overflow:auto}.panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}.panel-head h2{font-size:18px;font-weight:500;letter-spacing:-.04em;margin:0}.small-close{width:44px;height:44px;font-size:25px;border:0;border-radius:50%;background:#ffffff0c;color:var(--ink)}.setting{display:block;margin:15px 0}.setting span{display:flex;justify-content:space-between;font-size:13px}.setting output{color:#ffad88;font:12px ui-monospace,monospace}input[type=range]{width:100%;height:34px;accent-color:var(--accent);cursor:pointer}.presets{display:flex;gap:8px}.presets button{flex:1;min-height:44px;border:1px solid #ffffff60;border-radius:12px;background:transparent;color:var(--ink);font-size:12px}.presets button[aria-pressed=true]{border-color:var(--accent);color:#ffb69e;background:#ff704c15}
+    #notice{position:fixed;z-index:6;top:calc(76px + env(safe-area-inset-top));left:20px;right:20px;max-width:440px;margin:auto;background:#181916f5;border:1px solid #ffffff55;border-radius:16px;padding:14px 18px;font-size:13px;box-shadow:0 8px 40px #0005}#notice:empty{display:none}#cursor{position:fixed;z-index:1;width:60px;height:60px;border:1px solid #fff9;border-radius:50%;pointer-events:none;transform:translate(-50%,-50%)}
+    dialog{color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:20px;width:min(92vw,420px);max-height:90dvh;overflow:auto}dialog::backdrop{background:#000b;backdrop-filter:blur(8px)}dialog img{width:100%;max-height:55dvh;object-fit:contain;border-radius:12px;background:#000}dialog p{font-size:13px;color:var(--muted)}dialog .start-row>*{flex:1}#download{display:flex;align-items:center;justify-content:center;text-decoration:none;color:#171511;background:var(--accent);padding:14px;border-radius:100px;min-height:48px;font-weight:600}
+    @media(min-width:700px){header{padding:28px 36px}.brand{font-size:14px}#intro{padding:100px 6vw 40px}.intro-footer{max-width:560px}#tools{padding-bottom:28px}}
+    @media(max-height:550px) and (orientation:landscape){#intro{padding:78px 24px 20px}.hero-title{font-size:64px;margin-bottom:14px}.intro-copy{font-size:13px;margin-bottom:12px}.eyebrow,.intro-footer,.privacy{display:none}.intro-content{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:end}.hero-title{grid-row:span 2}.start-row{grid-column:2}.toolbar{padding:4px 10px}.shutter{width:52px;height:52px}.shutter:before{width:38px;height:38px}#settings{bottom:90px}#tools{gap:4px;padding-bottom:10px}}
+    @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+  </style>
+</head>
+<body>
+  <main id="stage" aria-label="Interaktives Kamerabild. Mit Finger oder Maus ziehen, um das Bild zu verflüssigen."></main>
+  <header><div class="brand"><i class="mark" aria-hidden="true"></i> REALITY MELT</div><div class="pill"><i class="dot" aria-hidden="true"></i><span id="sourceLabel">LIQUID LENS / 001</span></div></header>
+  <section id="intro" aria-labelledby="title"><div class="intro-content"><div><p class="eyebrow">AN INTERACTIVE CAMERA EXPERIMENT</p><h1 class="hero-title" id="title">Reality<br><span>is fluid.</span></h1></div><div><p class="intro-copy">Deine Welt. Ein bisschen flüssiger.<br>Öffne die Kamera und zieh mit dem Finger durchs Bild.</p><div class="start-row"><button class="primary" id="start" disabled>Kamera öffnen <span aria-hidden="true">↗</span></button><button class="secondary" id="demo" disabled>Demo testen</button></div><p class="privacy">Das Kamerabild bleibt auf deinem Gerät. Keine Aufnahme, kein Upload.</p></div></div><div class="intro-footer"><span>TOUCH · DISTORT · CAPTURE</span><span>BUILT WITH THREE.JS</span></div></section>
+  <div id="tools" hidden><p class="hint">Mit dem Finger ziehen. Loslassen und zurückfließen lassen.</p><div class="toolbar" role="group" aria-label="Kamera und Effekte">
+    <button class="tool" id="camera" aria-label="Kamera öffnen" title="Kamera öffnen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h4l2-3h4l2 3h4v13H4z"/><circle cx="12" cy="13" r="4"/></svg></button>
+    <button class="tool" id="reset" aria-label="Effekt zurücksetzen" title="Zurücksetzen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10a8 8 0 1 1 1 8M4 4v6h6"/></svg></button>
+    <button class="shutter" id="capture" aria-label="Foto aufnehmen" title="Foto aufnehmen"></button>
+    <button class="tool" id="freeze" aria-label="Bild einfrieren" aria-pressed="false" title="Bild einfrieren"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg></button>
+    <button class="tool" id="tune" aria-label="Effekte einstellen" aria-controls="settings" aria-expanded="false" title="Effekte einstellen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h8m4 0h4M4 17h3m4 0h9"/><circle cx="14" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg></button>
+  </div></div>
+  <section id="settings" aria-labelledby="settingsTitle" hidden><div class="panel-head"><h2 id="settingsTitle">Make it melt.</h2><button class="small-close" id="closeSettings" aria-label="Einstellungen schließen">×</button></div><div class="presets" role="group" aria-label="Effekt-Voreinstellungen"><button data-preset="soft" aria-pressed="false">Soft glass</button><button data-preset="liquid" aria-pressed="true">Liquid</button><button data-preset="wild" aria-pressed="false">Heavy melt</button></div><label class="setting"><span>Intensität <output id="powerOut">65%</output></span><input id="power" type="range" min="10" max="100" value="65"></label><label class="setting"><span>Pinselgröße <output id="radiusOut">20%</output></span><input id="radius" type="range" min="6" max="40" value="20"></label><label class="setting"><span>Rückfluss <output id="returnOut">Langsam</output></span><input id="return" type="range" min="0" max="100" value="35"></label></section>
+  <p id="notice" role="status" aria-live="polite"></p><div id="cursor" hidden></div>
+  <dialog id="photo"><div class="panel-head"><h2>Ein Moment, geschmolzen.</h2><button id="closePhoto" class="small-close" aria-label="Foto schließen">×</button></div><img id="photoPreview" alt="Dein verflüssigtes Foto"><p>Nur das Bild wird gespeichert, ohne Bedienelemente. Auf dem iPhone kannst du es über „Teilen“ in Fotos sichern.</p><div class="start-row"><a id="download" download="reality-melt.png">Speichern</a><button id="share" class="secondary" hidden>Teilen</button></div></dialog>
+  <video id="video" autoplay muted playsinline hidden></video>
+  <script type="module">
+    const $ = (id) => document.getElementById(id);
+    let THREE;
+    try { THREE = await import('https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js'); }
+    catch { $('notice').textContent = 'Three.js konnte nicht geladen werden. Prüfe deine Internetverbindung und lade die Seite neu.'; throw new Error('Three.js unavailable'); }
+    const {WebGLRenderer, Scene, OrthographicCamera, PlaneGeometry, ShaderMaterial, Mesh, CanvasTexture, VideoTexture, DataTexture, RGBAFormat, UnsignedByteType, LinearFilter, SRGBColorSpace, Vector2} = THREE;
+    let renderer;
+    try {renderer = new WebGLRenderer({antialias:false,alpha:false,preserveDrawingBuffer:true,powerPreference:'high-performance'});}
+    catch { $('notice').textContent='WebGL ist auf diesem Gerät nicht verfügbar. Versuche Safari oder Chrome mit aktivierter Hardwarebeschleunigung.'; throw new Error('WebGL unavailable'); }
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+    renderer.outputColorSpace=SRGBColorSpace;
+    $('stage').append(renderer.domElement);
+    const scene=new Scene(), camera=new OrthographicCamera(-1,1,1,-1,0,1);
+    const nx=96,ny=128,field=new Float32Array(nx*ny*2),bytes=new Uint8Array(nx*ny*4);
+    const displacement=new DataTexture(bytes,nx,ny,RGBAFormat,UnsignedByteType);
+    displacement.minFilter=displacement.magFilter=LinearFilter;
+    const demoCanvas=document.createElement('canvas');demoCanvas.width=960;demoCanvas.height=1440;
+    const ctx=demoCanvas.getContext('2d');
+    // A locally generated architectural poster makes the shader usable without camera access.
+    const bg=ctx.createLinearGradient(0,0,960,1440);bg.addColorStop(0,'#97b4be');bg.addColorStop(.5,'#d6bda0');bg.addColorStop(1,'#5b6859');ctx.fillStyle=bg;ctx.fillRect(0,0,960,1440);
+    const sun=ctx.createRadialGradient(740,350,10,740,350,650);sun.addColorStop(0,'#ffe0aa');sun.addColorStop(1,'#ffe0aa00');ctx.fillStyle=sun;ctx.fillRect(0,0,960,1440);
+    ctx.fillStyle='#b5472b';ctx.fillRect(110,180,450,1070);ctx.fillStyle='#d16943';ctx.fillRect(110,180,55,1070);ctx.fillStyle='#e2b48a';ctx.fillRect(560,180,90,1070);
+    ctx.fillStyle='#223c3e';ctx.beginPath();ctx.roundRect(208,340,258,890,[130,130,0,0]);ctx.fill();
+    const glass=ctx.createLinearGradient(208,400,466,1050);glass.addColorStop(0,'#bed9cb');glass.addColorStop(.4,'#335851');glass.addColorStop(1,'#102d30');ctx.fillStyle=glass;ctx.beginPath();ctx.roundRect(225,360,224,870,[112,112,0,0]);ctx.fill();
+    ctx.strokeStyle='#a3b09a';ctx.lineWidth=3;for(let y=510;y<1230;y+=90){ctx.beginPath();ctx.moveTo(225,y);ctx.lineTo(449,y);ctx.stroke();}ctx.fillStyle='#d2a585';ctx.fillRect(330,360,9,870);
+    ctx.fillStyle='#d1c8a9';ctx.beginPath();ctx.moveTo(0,1250);ctx.lineTo(960,1110);ctx.lineTo(960,1440);ctx.lineTo(0,1440);ctx.fill();
+    ctx.strokeStyle='#52624b';ctx.lineWidth=14;for(let i=0;i<7;i++){ctx.beginPath();ctx.moveTo(830,1350);ctx.quadraticCurveTo(670+i*35,700,720+i*32,650+i*20);ctx.stroke();}
+    ctx.fillStyle='#f8e5c7';ctx.font='400 20px monospace';ctx.fillText('STUDY IN LIQUID / 01',205,265);
+    const demoTexture=new CanvasTexture(demoCanvas);demoTexture.colorSpace=SRGBColorSpace;
+    const uniforms={image:{value:demoTexture},field:{value:displacement},viewport:{value:new Vector2(1,1)},imageSize:{value:new Vector2(960,1440)},mirror:{value:0}};
+    const material=new ShaderMaterial({uniforms,vertexShader:`varying vec2 uv0;void main(){uv0=uv;gl_Position=vec4(position.xy,0.0,1.0);}`,fragmentShader:`
+      uniform sampler2D image;uniform sampler2D field;uniform vec2 viewport;uniform vec2 imageSize;uniform float mirror;varying vec2 uv0;
+      void main(){vec2 d=(texture2D(field,uv0).rg*255.0-128.0)/127.0;vec2 q=uv0-d*.22;
+      float viewAspect=viewport.x/viewport.y;float sourceAspect=imageSize.x/imageSize.y;
+      vec2 fit=vec2(min(1.0,viewAspect/sourceAspect),min(1.0,sourceAspect/viewAspect));q=(q-.5)*fit+.5;
+      if(mirror>.5)q.x=1.0-q.x;
+      vec3 c=texture2D(image,clamp(q,vec2(.002),vec2(.998))).rgb;
+      gl_FragColor=vec4(c,1.0);
+      #include <colorspace_fragment>
+      }`});
+    scene.add(new Mesh(new PlaneGeometry(2,2),material));
+    let active=false,stream=null,liveTexture=null,stillTexture=null,front=false,frozen=false,busy=false,photoURL=null,photoBlob=null;
+    let power=.65,radius=.2,recovery=.35,lastTime=performance.now(),noticeTimer;
+    const pointers=new Map();
+    function notify(message,persistent=false){clearTimeout(noticeTimer);$('notice').textContent=message;if(!persistent)noticeTimer=setTimeout(()=>$('notice').textContent='',4500);}
+    function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h);uniforms.viewport.value.set(w,h);reset();}
+    function reset(){field.fill(0);}
+    window.addEventListener('resize',resize);resize();
+    function dab(x,y,dx,dy){const aspect=innerWidth/innerHeight;const r=radius*.5;for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const ax=(i/(nx-1)-x)*aspect,ay=j/(ny-1)-y;const dist=ax*ax+ay*ay;if(dist>r*r*9)continue;const weight=Math.exp(-dist/(r*r*.5));const k=(j*nx+i)*2;field[k]=Math.max(-.8,Math.min(.8,field[k]+dx*weight*power*3.5));field[k+1]=Math.max(-.8,Math.min(.8,field[k+1]+dy*weight*power*3.5));}}
+    function coords(e){return{x:e.clientX/innerWidth,y:1-e.clientY/innerHeight};}
+    const canvas=renderer.domElement;
+    canvas.addEventListener('pointerdown',e=>{if(!active)return;canvas.setPointerCapture(e.pointerId);const p=coords(e);pointers.set(e.pointerId,p);dab(p.x,p.y,0,-.025);$('cursor').hidden=false;moveCursor(e);});
+    function moveCursor(e){$('cursor').style.left=e.clientX+'px';$('cursor').style.top=e.clientY+'px';}
+    canvas.addEventListener('pointermove',e=>{const old=pointers.get(e.pointerId);if(!old)return;const p=coords(e),dx=p.x-old.x,dy=p.y-old.y;const steps=Math.min(12,Math.max(1,Math.ceil(Math.hypot(dx,dy)*100)));for(let i=1;i<=steps;i++)dab(old.x+dx*i/steps,old.y+dy*i/steps,dx/steps,dy/steps);pointers.set(e.pointerId,p);moveCursor(e);});
+    function end(e){pointers.delete(e.pointerId);if(!pointers.size)$('cursor').hidden=true;}
+    canvas.addEventListener('pointerup',end);canvas.addEventListener('pointercancel',end);
+    function enter(){active=true;$('intro').hidden=true;$('tools').hidden=false;}
+    function setCameraButton(){const label=stream?'Kamera wechseln':'Kamera öffnen';$('camera').setAttribute('aria-label',label);$('camera').title=label;}
+    function setFrozen(value){frozen=value;$('freeze').setAttribute('aria-pressed',String(value));$('freeze').setAttribute('aria-label',value?'Livebild fortsetzen':'Bild einfrieren');$('freeze').title=value?'Livebild fortsetzen':'Bild einfrieren';}
+    function stopCamera(){stream?.getTracks().forEach(t=>t.stop());stream=null;$('video').srcObject=null;liveTexture?.dispose();liveTexture=null;}
+    async function openCamera(switching=false){
+      if(busy)return;
+      if(!isSecureContext||!navigator.mediaDevices?.getUserMedia){notify('Die Kamera braucht HTTPS. Öffne die veröffentlichte Seite in Safari oder Chrome.',true);return;}
+      busy=true;$('start').disabled=$('camera').disabled=true;$('start').textContent='Kamera wird geöffnet …';
+      if(switching)front=!front;
+      stopCamera();
+      try{
+        stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:front?'user':'environment'},width:{ideal:1280},height:{ideal:720}}});
+        const video=$('video');video.srcObject=stream;await video.play();
+        if(!video.videoWidth)await new Promise((resolve,reject)=>{const timeout=setTimeout(()=>reject(new Error('VideoTimeout')),10000);video.addEventListener('loadeddata',()=>{clearTimeout(timeout);resolve();},{once:true});});
+        liveTexture=new VideoTexture(video);liveTexture.colorSpace=SRGBColorSpace;
+        uniforms.image.value=liveTexture;uniforms.imageSize.value.set(video.videoWidth,video.videoHeight);
+        const facing=stream.getVideoTracks()[0].getSettings().facingMode;
+        if(facing)front=facing==='user';uniforms.mirror.value=front?1:0;
+        setFrozen(false);$('sourceLabel').textContent='LIVE / KAMERA';reset();enter();notify('Zieh mit dem Finger durchs Bild.');
+      }catch(error){stopCamera();uniforms.image.value=demoTexture;uniforms.imageSize.value.set(960,1440);uniforms.mirror.value=0;setFrozen(false);$('sourceLabel').textContent='DEMO / OHNE KAMERA';
+        const messages={NotAllowedError:'Kamerazugriff wurde nicht erlaubt. Du kannst die Demo nutzen oder den Zugriff in den Browser-Einstellungen erlauben.',NotFoundError:'Keine Kamera gefunden. Die Demo funktioniert auch ohne Kamera.',NotReadableError:'Die Kamera ist gerade belegt. Schließe andere Kamera-Apps und versuche es erneut.'};
+        notify(messages[error.name]||'Die Kamera konnte nicht gestartet werden. Versuche es erneut oder nutze die Demo.',true);
+      }finally{busy=false;$('start').disabled=$('camera').disabled=false;$('start').textContent='Kamera öffnen ↗';setCameraButton();}
+    }
+    $('start').onclick=()=>openCamera();$('camera').onclick=()=>openCamera(Boolean(stream));
+    $('demo').onclick=()=>{enter();$('sourceLabel').textContent='DEMO / OHNE KAMERA';notify('Demo aktiv. Zieh über das Bild.');};
+    $('reset').onclick=()=>{reset();notify('Alles wieder an seinem Platz.');};
+    $('freeze').onclick=()=>{if(!stream){notify('Das Demobild ist bereits eingefroren.');return;}if(frozen){uniforms.image.value=liveTexture;stillTexture?.dispose();stillTexture=null;setFrozen(false);$('sourceLabel').textContent='LIVE / KAMERA';}else{const v=$('video'),c=document.createElement('canvas');c.width=v.videoWidth;c.height=v.videoHeight;c.getContext('2d').drawImage(v,0,0);stillTexture=new CanvasTexture(c);stillTexture.colorSpace=SRGBColorSpace;uniforms.image.value=stillTexture;setFrozen(true);$('sourceLabel').textContent='STILL / EINGEFROREN';}};
+    function panel(open){$('settings').hidden=!open;$('tune').setAttribute('aria-expanded',String(open));if(open)$('closeSettings').focus();else $('tune').focus();}
+    $('tune').onclick=()=>panel($('settings').hidden);$('closeSettings').onclick=()=>panel(false);
+    function update(){power=+$('power').value/100;radius=+$('radius').value/100;recovery=+$('return').value/100;$('powerOut').textContent=$('power').value+'%';$('radiusOut').textContent=$('radius').value+'%';$('returnOut').textContent=recovery===0?'Bleibt stehen':recovery<.5?'Langsam':'Schnell';}
+    ['power','radius','return'].forEach(id=>$(id).oninput=()=>{update();document.querySelectorAll('[data-preset]').forEach(b=>b.setAttribute('aria-pressed','false'));});
+    const presets={soft:[35,28,65],liquid:[65,20,35],wild:[95,12,12]};
+    document.querySelectorAll('[data-preset]').forEach(button=>button.onclick=()=>{const p=presets[button.dataset.preset];['power','radius','return'].forEach((id,i)=>$(id).value=p[i]);update();document.querySelectorAll('[data-preset]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));});
+    $('capture').onclick=()=>{renderer.render(scene,camera);canvas.toBlob(blob=>{if(!blob){notify('Das Foto konnte nicht erstellt werden.');return;}if(photoURL)URL.revokeObjectURL(photoURL);photoBlob=blob;photoURL=URL.createObjectURL(blob);$('photoPreview').src=photoURL;$('download').href=photoURL;const file=new File([blob],'reality-melt.png',{type:'image/png'});$('share').hidden=!navigator.canShare?.({files:[file]});$('photo').showModal();},'image/png');};
+    $('closePhoto').onclick=()=>$('photo').close();$('share').onclick=async()=>{try{await navigator.share({files:[new File([photoBlob],'reality-melt.png',{type:'image/png'})],title:'Reality Melt'});}catch(e){if(e.name!=='AbortError')notify('Teilen ist hier nicht möglich. Nutze Speichern.');}};
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('settings').hidden)panel(false);if(active&&e.key.toLowerCase()==='r')reset();});
+    document.addEventListener('visibilitychange',()=>{pointers.clear();$('cursor').hidden=true;stream?.getTracks().forEach(t=>t.enabled=!document.hidden);lastTime=performance.now();});
+    window.addEventListener('pagehide',()=>{stopCamera();if(photoURL)URL.revokeObjectURL(photoURL);});
+    canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();notify('Die Grafikverbindung wurde unterbrochen. Bitte lade die Seite neu.',true);});
+    function frame(now){requestAnimationFrame(frame);if(document.hidden)return;const dt=Math.min((now-lastTime)/1000,.1);lastTime=now;const fade=Math.exp(-dt*(recovery===0?0:.12+recovery*3));for(let i=0;i<nx*ny;i++){field[i*2]*=fade;field[i*2+1]*=fade;bytes[i*4]=Math.round(128+field[i*2]*127);bytes[i*4+1]=Math.round(128+field[i*2+1]*127);bytes[i*4+2]=128;bytes[i*4+3]=255;}displacement.needsUpdate=true;renderer.render(scene,camera);}
+    $('start').disabled=$('demo').disabled=false;requestAnimationFrame(frame);
+  </script>
+</body>
+</html>
